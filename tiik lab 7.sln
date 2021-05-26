@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tiik lab 7", "tiik lab 7\tiik lab 7.csproj", "{04DAAC77-3D8A-4362-870C-0DD8BEF67554}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{04DAAC77-3D8A-4362-870C-0DD8BEF67554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04DAAC77-3D8A-4362-870C-0DD8BEF67554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04DAAC77-3D8A-4362-870C-0DD8BEF67554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04DAAC77-3D8A-4362-870C-0DD8BEF67554}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {04EF2971-8D61-4822-A925-80724F5986AE}
+	EndGlobalSection
+EndGlobal
