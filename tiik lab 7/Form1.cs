@@ -32,10 +32,10 @@ namespace tiik_lab_7
 
             textBox2.Text = "";
             for (int i = 0; i < codes.Length; i++) {    //обход этого массива
-                var temp = codes[i].ToBitArray();   //конверт строки в бит массив
-                var arr = CompleteBits(temp, false);    //добавление места для контрольных битов
-                CalculateControlBytes(ref arr, temp.Length);    //заполнение векторов для контрольных битов
-                //CalculateControlBytes(ref arr, stuff);  //вычисление контрольных битов
+                var init = codes[i].ToBitArray();   //конверт строки в бит массив
+                var arr = CompleteBits(init, false);    //добавление места для контрольных битов
+                CalculateControlBytes(ref arr, init.Length);    //заполнение векторов для контрольных битов
+
                 textBox2.Text += arr.ToString2() + " "; //вывод результата
             }
             textBox2.Text = textBox2.Text.TrimEnd();
@@ -57,16 +57,15 @@ namespace tiik_lab_7
             label2.Text = "";
             textBox4.Text = "";
             for (int i = 0; i < codes.Length; i++) {
-                var temp = codes[i].ToBitArray();
-                var arr = CompleteBits (temp, true);
-                CalculateControlBytes(ref arr, temp.Length - temp.NumberOfControlBits());
-                //CalculateControlBytes (ref arr, stuff);
-                var res = CompareAndCorrect (temp, arr);
+                var init = codes[i].ToBitArray();
+                var arr = CompleteBits (init, true);
+                CalculateControlBytes(ref arr, init.Length - init.NumberOfControlBits());
+                var res = CompareAndCorrect (ref init, arr);
 
-                if (res.Item1 != -1)
-                    label2.Text += "Ошибка обнаружена в " + (res.Item1 + 1) * (i + 1) + " бите!\n";
+                if (res != -1)
+                    label2.Text += "Ошибка обнаружена в " + (res + 1) * (i + 1) + " бите!\n";
 
-                textBox4.Text += res.Item2.ToString2() + " ";
+                textBox4.Text += init.ToString2() + " ";
             }
             textBox4.Text = textBox4.Text.TrimEnd();
 
@@ -81,7 +80,7 @@ namespace tiik_lab_7
         /// <param name="original"></param>
         /// <param name="calculated"></param>
         /// <returns></returns>
-        private Tuple<int, BitArray> CompareAndCorrect (BitArray original, BitArray calculated)
+        private int CompareAndCorrect (ref BitArray original, BitArray calculated)
         {
             int errorIndex = 0;
             for (int i = 0; i < original.NumberOfControlBits(); i++) {
@@ -93,7 +92,7 @@ namespace tiik_lab_7
             if (--errorIndex != -1)
                 original[errorIndex] = !original[errorIndex];
 
-            return new Tuple <int, BitArray>(errorIndex, original);
+            return errorIndex;
         }
 
 
@@ -146,50 +145,7 @@ namespace tiik_lab_7
 
                 arr[currPow] = (count % 2 == 1);
             }
-
-
-            /*
-            var twoPow = MaxPowerOfTwo (numberLen);
-            var temp = new BitArray[twoPow];
-            for (int i = 0; i < twoPow; i++) {
-                temp[i] = new BitArray(size);
-            }
-
-            for (int i = 0; i < size; i++)
-            {
-                for (int j = 0; j < temp.Length; j++) {
-                    temp[j][i] = (i+1).At (j+1);
-                }
-            }
-
-
-            for (int i = 0; i < temp.Length; i++) {
-                var currPow = (int) Math.Pow (2, i) - 1;
-                for 
-            }
-
-            return temp;*/
         }
-
-
-        /*/// <summary>
-        /// вычисление контрольных битов
-        /// </summary>
-        /// <param name="number"></param>
-        /// <param name="arrays"></param>
-        private void CalculateControlBytes (ref BitArray number, BitArray[] arrays)
-        {
-            var counter = 0;
-            for (int i = 0; i < arrays.Length; i++) {
-                for (int j = 0; j < arrays[i].Length; j++) {
-                    if (arrays[i][j])
-                        counter += (number[j] == true ? 1 : 0);
-                }
-
-                number[(int) Math.Pow (2, i) - 1] = (counter % 2 != 0);
-                counter = 0;
-            }
-        }*/
 
 
         /// <summary>
