@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 
 
-namespace tiik_lab_7.Properties
+namespace TiK_LR_7.Properties
 {
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.

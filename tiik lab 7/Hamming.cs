@@ -1,193 +1,173 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace tiik_lab_7
+namespace TiK_LR_7
 {
     static class Hamming
     {
-        public static int HammingBase { get; set; }   //второе число в хэмминге
-        public static int HammingFinal { get; set; }  //первое число в хэмминге
+        private static int _hammingBase = 7;
+        private static int _hammingFinal = 11;
+
+        public static int HammingFinal { get { return _hammingFinal; } }
+        public static int HammingBase { get { return _hammingBase; } }
+
+        private static int _controlBitsNumbers;
 
 
+        /// <summary>
+        ///     Синтезирование кода Хэмминга для входной строки
+        /// </summary>
+        /// <param name="inputStr"></param>
+        /// <returns></returns>
         public static string Encode (string inputStr)
         {
-            string[] codes = SplitToArray(inputStr, HammingBase);
+            BitArray inputBitArray = inputStr.ToBitArray();   //преобразование строки в бинарный массив
+            BitArray arrayWithControlBites = new BitArray(inputBitArray.Length + (_hammingFinal - _hammingBase));
 
-            string output = "";
-            for (int i = 0; i < codes.Length; i++)
-            {    //обход этого массива
-                var init = codes[i].ToBitArray();   //конверт строки в бит массив
-                var arr = CompleteBits(init, false);    //добавление места для контрольных битов
-                CalculateControlBytes(ref arr, init.Length);    //заполнение векторов для контрольных битов
-
-                output += arr.ToString2() + " "; //вывод результата
-            }
-
-            return output.TrimEnd();
-        }
-
-        /// <summary>
-        /// строка к массиву строк по длине
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="len"></param>
-        /// <returns></returns>
-        private static string[] SplitToArray(string str, int len)
-        {
-            str = str.Replace(" ", "");
-            string[] res = new string[str.Length % len == 0
-                ? str.Length / len
-                : str.Length / len + 1];
-
-            for (int i = 0; i < res.Length; i++)
-            {
-                if (str.Length < len)
-                    res[i] = str;
-                else
-                {
-                    res[i] = str.Substring(0, len);
-                    str = str.Substring(len);
-                }
-            }
-
-            return res;
-        }
-
-
-        public static int[] FindError (string inputStr, out string correctedText)
-        {
-            string[] codes;
-            codes = SplitToArray(inputStr, HammingFinal);
-
-            correctedText = "";
-            List <int> errors = new List<int>();
-            for (int i = 0; i < codes.Length; i++)
-            {
-                var init = codes[i].ToBitArray();
-                var arr = CompleteBits(init, true);
-                CalculateControlBytes(ref arr, init.Length - init.NumberOfControlBits());
-                var res = CompareAndCorrect(ref init, arr);
-
-                if (res != -1)
-                    errors.Add((res + 1) + (i * HammingFinal));
-
-                correctedText += init.ToString2() + " ";
-            }
-
-            correctedText = correctedText.TrimEnd();
-            return errors.ToArray();
-        } 
-
-
-        /// <summary>
-        /// добавление контрольных битов при кодировании или уже имеющихся на нулевые при проверке ошибки
-        /// </summary>
-        /// <param name="number"></param>
-        /// <param name="toReplace"></param>
-        /// <returns></returns>
-        public static BitArray CompleteBits(BitArray number, bool toReplace)
-        {
-            BitArray array;
-
-            if (!toReplace)
-                array = new BitArray(number.Length + NeedToAddBits(number.Length));
-            else
-                array = new BitArray(number.Length);
-
-            for (int i = 0, k = 0; i < array.Length; i++)
+            // добавление контрольных битов
+            for (int i = 0, k = 0; i < arrayWithControlBites.Length; i++)
             {
                 if (((i + 1) & i) == 0)
                 {
-                    array[i] = false;
-                    if (toReplace)
-                        k++;
+                    arrayWithControlBites[i] = false;
                 }
                 else
-                    array[i] = number[k++];
+                    arrayWithControlBites[i] = inputBitArray[k++];
             }
 
-            return array;
+            GetControlBytes(ref arrayWithControlBites);    //заполнение векторов для контрольных битов
+
+            return arrayWithControlBites.ToBinString();
         }
 
 
         /// <summary>
-        /// заполнение массивов для контрольных битов
+        ///     Поиск и исправление ошибки во входной строке
         /// </summary>
-        /// <param name="numberLen"></param>
-        /// <param name="size"></param>
+        /// <param name="inputStr"></param>
+        /// <param name="fixedString"></param>
         /// <returns></returns>
-        public static void CalculateControlBytes(ref BitArray arr, int numberLen)
+        public static int FindError(string inputStr, out string fixedString)
         {
-            for (int i = 0; i < NeedToAddBits(numberLen); i++)
+            int errors = 0;
+
+            BitArray inputBitArray = inputStr.ToBitArray();
+            BitArray arrayWithControlBites = new BitArray(inputBitArray.Length); ;
+
+            // замена контрльных битов на нулевые
+            for (int i = 0, k = 0; i < arrayWithControlBites.Length; i++)
             {
-                var currPow = (int)Math.Pow(2, i) - 1;
-                int count = 0;
-                for (int j = currPow; j < arr.Length; j += (currPow + 1) * 2)
+                if (((i + 1) & i) == 0)
                 {
-                    for (int k = j; k < j + currPow + 1 && k < arr.Length; k++)
+                    arrayWithControlBites[i] = false;
+                    k++;
+                }
+                else
+                    arrayWithControlBites[i] = inputBitArray[k++];
+            }
+
+            /// вычисления количества контрольных битов в сообщении на проверку
+            int length = arrayWithControlBites.Length;
+            int power = 0;
+            while (true)
+            {
+                if (Math.Pow(2, power) > length)
+                {
+                    _controlBitsNumbers = power;
+                    break;
+                }
+                power++;
+            }
+
+            GetControlBytes(ref arrayWithControlBites);
+
+            int res = CorrectArray(ref inputBitArray, arrayWithControlBites);
+            if (res != -1)
+                errors = (res + 1);
+
+            fixedString = inputBitArray.ToBinString();
+            return errors;
+        }
+
+
+
+        /// <summary>
+        ///     Заполнение массивов контрольных битов
+        /// </summary>
+        /// <param name="inputBitArray"></param>
+        public static void GetControlBytes(ref BitArray inputBitArray)
+        {
+            for (int i = 0; i < (_hammingFinal - _hammingBase); i++)
+            {
+                int currentPow = (int)Math.Pow(2, i) - 1;
+                int count = 0;
+                for (int j = currentPow; j < inputBitArray.Length; j += (currentPow + 1) * 2)
+                {
+                    for (int k = j; k < j + currentPow + 1 && k < inputBitArray.Length; k++)
                     {
-                        count += (arr[k] == true ? 1 : 0);
+                        count += (inputBitArray[k] == true ? 1 : 0);
                     }
                 }
 
-                arr[currPow] = (count % 2 == 1);
+                inputBitArray[currentPow] = (count % 2 == 1);
             }
         }
 
 
         /// <summary>
-        /// после вычисления контрольных битов для сообщения предположительно с ошибкой, сравнение контрольных битов исходных с получившимися. сумма позиций несовпадающих битов будет указывать на место с ошибкой, бит в котором надо просто инвертировать
+        ///     Корректирование входного бинарного массива
         /// </summary>
-        /// <param name="original"></param>
-        /// <param name="calculated"></param>
+        /// <param name="inputArray"></param>
+        /// <param name="calculatedArray"></param>
         /// <returns></returns>
-        public static int CompareAndCorrect(ref BitArray original, BitArray calculated)
+        public static int CorrectArray(ref BitArray inputArray, BitArray calculatedArray)
         {
             int errorIndex = 0;
-            for (int i = 0; i < original.NumberOfControlBits(); i++)
+            for (int i = 0; i < _controlBitsNumbers; i++)
             {
                 var currPower = (int)Math.Pow(2, i) - 1;
-                if (original[currPower] != calculated[currPower])
+                if (inputArray[currPower] != calculatedArray[currPower])
                     errorIndex += currPower + 1;
             }
 
             if (--errorIndex != -1)
-                original[errorIndex] = !original[errorIndex];
+                inputArray[errorIndex] = !inputArray[errorIndex];
 
             return errorIndex;
         }
 
 
         /// <summary>
-        /// вычисление значения, для получения первого числа из первого (вычисления макс колва бит, которые можно прибавить к исх строке)
+        ///     Возвращает входную строку в виде бинарного массива
         /// </summary>
-        /// <param name="len"></param>
+        /// <param name="inputStr"></param>
         /// <returns></returns>
-        public static int NeedToAddBits(int len)
+        public static BitArray ToBitArray(this string inputStr)
         {
-            List<bool> list = new List<bool>();
-
-            int i = 0, c = 0;
-            for (; c < len; i++, c++)
+            var temp = new BitArray(inputStr.Length);
+            for (int i = 0; i < inputStr.Length; i++)
             {
-                if (((i + 1) & i) == 0)
-                {
-                    list.Add(false);
-                    c--;
-                }
-                else
-                    list.Add(true);
-
+                temp[i] = inputStr[i] == '1';
             }
 
-            if (list.Last())
-                return i - c;
-            else
-                return i - c - 1;
+            return temp;
+        }
+
+
+        /// <summary>
+        ///     Возвращает входной бинарный массив в виде строки
+        /// </summary>
+        /// <param name="inputBitArray"></param>
+        /// <returns></returns>
+        public static string ToBinString(this BitArray inputBitArray)
+        {
+            string outputStr = "";
+            foreach (bool elem in inputBitArray)
+            {
+                outputStr += (elem == true ? "1" : "0");
+            }
+
+            return outputStr;
         }
     }
 }
