@@ -12,15 +12,11 @@ namespace tiik_lab_7
         public static int HammingBase { get; set; }   //второе число в хэмминге
         public static int HammingFinal { get; set; }  //первое число в хэмминге
 
-        static Hamming()
-        {
-            HammingBase = 0;
-            HammingFinal = 0;
-        }
 
-
-        public static string Encode (string[] codes)
+        public static string Encode (string inputStr)
         {
+            string[] codes = SplitToArray(inputStr, HammingBase);
+
             string output = "";
             for (int i = 0; i < codes.Length; i++)
             {    //обход этого массива
@@ -34,9 +30,39 @@ namespace tiik_lab_7
             return output.TrimEnd();
         }
 
-
-        public static int[] FindError (string[] codes, out string correctedText)
+        /// <summary>
+        /// строка к массиву строк по длине
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        private static string[] SplitToArray(string str, int len)
         {
+            str = str.Replace(" ", "");
+            string[] res = new string[str.Length % len == 0
+                ? str.Length / len
+                : str.Length / len + 1];
+
+            for (int i = 0; i < res.Length; i++)
+            {
+                if (str.Length < len)
+                    res[i] = str;
+                else
+                {
+                    res[i] = str.Substring(0, len);
+                    str = str.Substring(len);
+                }
+            }
+
+            return res;
+        }
+
+
+        public static int[] FindError (string inputStr, out string correctedText)
+        {
+            string[] codes;
+            codes = SplitToArray(inputStr, HammingFinal);
+
             correctedText = "";
             List <int> errors = new List<int>();
             for (int i = 0; i < codes.Length; i++)
@@ -47,7 +73,7 @@ namespace tiik_lab_7
                 var res = CompareAndCorrect(ref init, arr);
 
                 if (res != -1)
-                    errors.Add((res + 1) * (i + 1));
+                    errors.Add((res + 1) + (i * HammingFinal));
 
                 correctedText += init.ToString2() + " ";
             }

@@ -8,10 +8,6 @@ namespace tiik_lab_7
 {
     public partial class Form1 : Form
     {
-        //private int hammingBase_ = 0;   //второе число в хэмминге
-        //private int hammingFinal_ = 0;  //первое число в хэмминге
-
-
         public Form1()
         {
             InitializeComponent();
@@ -28,9 +24,9 @@ namespace tiik_lab_7
             if (Hamming.HammingBase == 0 || (textBox1.Text.Length % Hamming.HammingBase != 0 && textBox1.Text.Length % Hamming.HammingBase < 3))  //если не выбрано
                 return;
 
-            var codes = SplitToArray (textBox1.Text, Hamming.HammingBase); //получение массива входных данных, разбитых по размеру второго параметра хэмминга, для обработки
+            //var codes = SplitToArray (textBox1.Text, Hamming.HammingBase); //получение массива входных данных, разбитых по размеру второго параметра хэмминга, для обработки
 
-            textBox2.Text = Hamming.Encode(codes);
+            textBox2.Text = Hamming.Encode(textBox1.Text);
         }
 
 
@@ -44,10 +40,8 @@ namespace tiik_lab_7
             if (Hamming.HammingFinal == 0 || (textBox3.Text.Length % Hamming.HammingFinal != 0 && textBox3.Text.Length % Hamming.HammingFinal < 3)) //если не выбрано
                 return;
 
-            var codes = SplitToArray (textBox3.Text, Hamming.HammingFinal);
-
             var res = "";
-            var errors = Hamming.FindError (codes, out res);
+            var errors = Hamming.FindError (textBox3.Text, out res);
 
             if (errors.Length == 0)
                 label2.Text = "Ошибок не обнаружено";
@@ -61,30 +55,7 @@ namespace tiik_lab_7
         }
 
 
-        /// <summary>
-        /// строка к массиву строк по длине
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="len"></param>
-        /// <returns></returns>
-        private string[] SplitToArray(string str, int len)
-        {
-            str = str.Replace(" ", "");
-            string[] res = new string[str.Length % len == 0
-                ? str.Length / len
-                : str.Length / len + 1];
-
-            for (int i = 0; i < res.Length; i++) {
-                if (str.Length < len)
-                    res[i] = str;
-                else {
-                    res[i] = str.Substring(0, len);
-                    str = str.Substring(len);
-                }
-            }
-
-            return res;
-        }
+        
 
 
         /// <summary>
